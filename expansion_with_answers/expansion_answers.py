@@ -1,7 +1,14 @@
-from pypdf import PdfReader
 import os
-from ollama import OllamaClient
+from pypdf import PdfReader
+from ollama import Client as OllamaClient 
 from dotenv import load_dotenv
 
 load_dotenv()
-ollama = OllamaClient(host=os.getenv("OLLAMA_HOST"))
+key = os.getenv("OLLAMA_KEY")
+host = os.getenv("OLLAMA_HOST")
+
+reader = PdfReader("data/fat_lost.pdf")
+pdf_text = [page.extract_text().strip() for page in reader.pages]
+texts = [text for text in pdf_text if text]
+
+#split the text into smaller chunks
