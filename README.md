@@ -1,2 +1,2 @@
 # Rag-Solution-Demo
-this project is a demo about rag solution
+This project is for learning about RAG and Python.
