@@ -2,3 +2,5 @@ chromadb
 pypdf
 ollama
 pandas
+langchain-text-splitters
+sentence-transformers
