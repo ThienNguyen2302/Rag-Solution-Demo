@@ -1,4 +1,5 @@
 import os
+import chromadb
 from pypdf import PdfReader
 from ollama import Client as OllamaClient 
 from dotenv import load_dotenv
@@ -6,6 +7,7 @@ from langchain_text_splitters import (
     RecursiveCharacterTextSplitter,
     SentenceTransformersTokenTextSplitter,
 )
+from chromadb.utils.embedding_functions import SentenceTransformerEmbeddingFunction
 
 load_dotenv()
 key = os.getenv("OLLAMA_KEY")
@@ -31,3 +33,6 @@ for chunks in chunks:
 
 print(f"Number of tokenized chunks: {len(token)}")
 print(f"First tokenized chunk: {token[0]}")
+
+embedding_function = SentenceTransformerEmbeddingFunction()
+print(embedding_function([token[0]]))
