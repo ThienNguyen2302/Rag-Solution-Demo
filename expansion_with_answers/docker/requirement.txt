@@ -4,3 +4,5 @@ ollama
 pandas
 langchain-text-splitters
 sentence-transformers
+umap-learn
+matplotlib

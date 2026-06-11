@@ -1,5 +1,7 @@
 import os
 import chromadb
+import umap
+import numpy as np
 from pypdf import PdfReader
 from ollama import Client as OllamaClient 
 from dotenv import load_dotenv
@@ -8,6 +10,8 @@ from langchain_text_splitters import (
     SentenceTransformersTokenTextSplitter,
 )
 from chromadb.utils.embedding_functions import SentenceTransformerEmbeddingFunction
+
+import matplotlib.pyplot as plt
 
 load_dotenv()
 key = os.getenv("OLLAMA_KEY")
@@ -89,6 +93,29 @@ joint_query = f"{query} {hypothetical_answer}"
 
 results = collection.query(query_texts=[joint_query], n_results=5, include=["documents", "embeddings"])
 retrieved_document = results['documents'][0]
-print("Retrieved Chunks: ")
-for chunk in retrieved_document:
-    print(chunk)
+
+embeddings = collection.get(include=["embeddings"])['embeddings']
+umap_transformer = umap.UMAP(n_components=0, transform_seed=0)
+retrieved_embeddings = results['embeddings'][0]
+
+# prepare arrays
+embeddings_arr = np.array(embeddings)  # shape (n_docs, dim)
+query_emb = np.array(embedding_function([query]))         # shape (1, dim)
+joint_query_emb = np.array(embedding_function([joint_query]))  # shape (1, dim)
+
+# fit UMAP (use n_components=2 for 2D)
+umap_transformer = umap.UMAP(n_components=2, random_state=0)
+projected_embeddings = umap_transformer.fit_transform(embeddings_arr)
+
+# transform queries (transform requires a fitted transformer)
+original_query_embedding = umap_transformer.transform(query_emb)
+augmented_query_embedding = umap_transformer.transform(joint_query_emb)
+
+plt.figure()
+plt.scatter(projected_embeddings[:, 0], projected_embeddings[:, 1], label='Document Embeddings', s=10, color='gray')
+plt.scatter(original_query_embedding[:, 0], original_query_embedding[:, 1], label='Original Query', s=100, color='red', marker='x')
+plt.scatter(augmented_query_embedding[:, 0], augmented_query_embedding[:, 1], label='Augmented Query', s=100, color='green', marker='o')
+plt.gca().set_aspect('equal', adjustable='datalim')
+plt.title("UMAP Projection of Document and Query Embeddings")
+plt.axis('off')
+plt.show()
