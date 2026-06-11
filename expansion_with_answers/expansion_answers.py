@@ -119,3 +119,32 @@ plt.gca().set_aspect('equal', adjustable='datalim')
 plt.title("UMAP Projection of Document and Query Embeddings")
 plt.axis('off')
 plt.show()
+
+def generate_answer(query, retrieved_chunks, model="qwen3:0.6b"):
+    prompt = f"""
+        You are an expert AI assistant providing answers based on retrieved information from the book "The Last Lecture" by Randy Pausch. 
+
+        Based on the retrieved chunks of text from the book, provide a concise and accurate answer to the user's question. Use only the information contained in the retrieved chunks to formulate your response. Do not include any information that is not present in the retrieved chunks.
+
+        ### Retrieved Chunks:
+        {retrieved_chunks}
+
+        ### Instructions:
+        1. Analyze the retrieved chunks to find relevant information that directly answers the user's question.
+        2. Synthesize the information into a clear and concise answer.
+        3. Do NOT include any personal opinions or information that is not supported by the retrieved chunks.
+
+        ### Output Format:
+        Provide your answer as a single paragraph of text without any markdown formatting or additional explanations.
+    """.strip()
+
+    messages = [
+        {"role": "system", "content": prompt},
+        {"role": "user", "content": query}
+    ]
+
+    response = ollama_client.chat(model=model, messages=messages)
+    return response['message']['content']
+
+final_answer = generate_answer(query, retrieved_document)
+print(f"Final Answer: {final_answer}")
