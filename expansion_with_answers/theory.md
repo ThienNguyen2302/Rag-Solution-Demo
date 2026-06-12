@@ -11,7 +11,7 @@ Trong RAG, retriever thường lấy các embedding của câu hỏi để tìm 
 3. Thêm từ đồng nghĩa, khái niệm liên quan, tên riêng, chủ đề đặc trưng, hoặc cách diễn đạt khác.
 4. Ghép truy vấn gốc và phần mở rộng lại trước khi embedding và retrieval.
 
-![Sơ đồ](data/query_expansion_techniques.png)
+![Sơ đồ](images/query_expansion_techniques.png)
 
 ## Cách hoạt động trong code
 
@@ -57,4 +57,4 @@ Biến `hypothetical_answer` trong code thực tế đang chứa các truy vấn
 
 Query expansion trong RAG là bước biến một câu hỏi gốc thành nhiều phiên bản truy vấn giàu ngữ nghĩa hơn, rồi dùng các truy vấn đó để tìm chunk liên quan chính xác hơn. Kỹ thuật này đặc biệt hữu ích khi dữ liệu cần tìm nằm rải rác hoặc được diễn đạt khác với cách người dùng đặt câu hỏi.
 
-![Use case](data/use_case.png)
+![Use case](images/use_case.png)
