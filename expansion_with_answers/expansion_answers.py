@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 import chromadb
 import umap
 import numpy as np
@@ -18,7 +19,9 @@ key = os.getenv("OLLAMA_KEY")
 host = os.getenv("OLLAMA_HOST")
 ollama_client = OllamaClient(host=host)
 
-reader = PdfReader("data/last_lecture.pdf")
+base_dir = Path(__file__).resolve().parent
+pdf_path = base_dir / "data" / "last_lecture.pdf"
+reader = PdfReader(str(pdf_path))
 pdf_text = [page.extract_text().strip() for page in reader.pages]
 texts = [text for text in pdf_text if text]
 
