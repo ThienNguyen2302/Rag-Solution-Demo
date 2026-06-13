@@ -54,19 +54,19 @@ query = input("Enter your question: ")
 results = collection.query(query_texts=[query], n_results=5)
 retrieved_chunks = results['documents'][0]
 
-def generate_augment_query(query, model="qwen3:0.6b"):
+def generate_answer_expansion(query, model="qwen3:0.6b"):
     prompt = """
-        You are an expert AI search assistant optimizing queries for a Retrieval-Augmented Generation (RAG) system. 
+        You are an expert AI search assistant optimizing answers for a Retrieval-Augmented Generation (RAG) system using the answer expansion technique. 
         Your specific domain of expertise is the book "The Last Lecture" by Randy Pausch.
 
-        Your task is to take a raw user query and generate a list of 3 to 5 augmented search queries. These augmented queries will be embedded and used to search a vector database containing chunks of text from the book.
+        Your task is to take a raw user query and generate a list of 3 to 5 hypothetical answers or textbook-style text chunks. These generated answers do not need to be 100% historically accurate, but they MUST mimic the exact tone, specific terminology, and narrative style of Randy Pausch in "The Last Lecture". These outputs will be embedded to search a vector database for semantic matching with the actual book chunks.
 
         ### Instructions:
-        1. Analyze the user's core intent.
-        2. Expand the query by including relevant synonyms, specific book terminology, character names (e.g., Jai, Chloe, Dylan, Logan), or core themes (e.g., brick walls, childhood dreams, time management, Tigger vs. Eeyore, overcoming obstacles).
-        3. Rephrase the user's query into different formats (e.g., a direct question, a statement of concepts) to maximize the surface area for semantic matching.
-        4. Correct any obvious spelling errors in the original query.
-        5. Do NOT answer the user's question. ONLY output the augmented queries.
+        1. Analyze the user's core intent and identify the underlying theme from the book.
+        2. Write 3 to 5 distinct, hypothetical paragraphs or statements that answer the query. 
+        3. Use specific book terminology, concepts, and names where appropriate (e.g., brick walls, childhood dreams, Tigger vs. Eeyore, head fakes, the First Penguin Award, Jai, Chloe, Dylan, Logan).
+        4. Write the outputs in the first-person perspective ("I", "my") or direct advice style, just like Randy Pausch delivered his lecture.
+        5. Do NOT write questions. ONLY output hypothetical answer text chunks that look like they were ripped directly from the book pages.
 
         ### Output Format:
         You must respond ONLY with a valid JSON array of strings. Do not include markdown formatting, introductory text, or explanations.
@@ -74,10 +74,9 @@ def generate_augment_query(query, model="qwen3:0.6b"):
         Example Input: "what did he say about failure?"
         Example Output: 
         [
-        "what did Randy Pausch say about failure and making mistakes?",
-        "the concept of the First Penguin award and failing well",
-        "brick walls are there to show how badly we want something",
-        "learning from failure, setbacks, and overcoming obstacles in The Last Lecture"
+        "Experience is what you get when you didn't get what you wanted. At Carnegie Mellon, I even gave out the First Penguin Award to the team that took the biggest financial or technical risk and failed, because learning from failure is essential.",
+        "The brick walls are there for a reason. The brick walls are not there to keep us out. The brick walls are there to give us a chance to show how badly we want something. They are there to stop the people who don't want it badly enough.",
+        "Failure is not just acceptable, it's an essential tool for growth. When you are doing something hard, you are going to screw up. The key is to fail fast, fail well, and treat mistakes as valuable lessons for the next attempt."
         ]
     """.strip()
     messages = [
@@ -88,10 +87,10 @@ def generate_augment_query(query, model="qwen3:0.6b"):
     response = ollama_client.chat(model=model, messages=messages)
     return response['message']['content']
 
-hypothetical_answer = generate_augment_query(query)
-joint_query = f"{query} {hypothetical_answer}"
+answer_expansion = generate_answer_expansion(query)
+expanded_query = f"{query} {answer_expansion}"
 
-results = collection.query(query_texts=[joint_query], n_results=5, include=["documents", "embeddings"])
+results = collection.query(query_texts=[expanded_query], n_results=5, include=["documents", "embeddings"])
 retrieved_document = results['documents'][0]
 
 embeddings = collection.get(include=["embeddings"])['embeddings']
@@ -101,7 +100,7 @@ retrieved_embeddings = results['embeddings'][0]
 # prepare arrays
 embeddings_arr = np.array(embeddings)  # shape (n_docs, dim)
 query_emb = np.array(embedding_function([query]))         # shape (1, dim)
-joint_query_emb = np.array(embedding_function([joint_query]))  # shape (1, dim)
+expanded_query_emb = np.array(embedding_function([expanded_query]))  # shape (1, dim)
 
 # fit UMAP (use n_components=2 for 2D)
 umap_transformer = umap.UMAP(n_components=2, random_state=0)
@@ -109,12 +108,12 @@ projected_embeddings = umap_transformer.fit_transform(embeddings_arr)
 
 # transform queries (transform requires a fitted transformer)
 original_query_embedding = umap_transformer.transform(query_emb)
-augmented_query_embedding = umap_transformer.transform(joint_query_emb)
+expanded_query_embedding = umap_transformer.transform(expanded_query_emb)
 
 plt.figure()
 plt.scatter(projected_embeddings[:, 0], projected_embeddings[:, 1], label='Document Embeddings', s=10, color='gray')
 plt.scatter(original_query_embedding[:, 0], original_query_embedding[:, 1], label='Original Query', s=100, color='red', marker='x')
-plt.scatter(augmented_query_embedding[:, 0], augmented_query_embedding[:, 1], label='Augmented Query', s=100, color='green', marker='o')
+plt.scatter(expanded_query_embedding[:, 0], expanded_query_embedding[:, 1], label='Expanded Answer', s=100, color='green', marker='o')
 plt.gca().set_aspect('equal', adjustable='datalim')
 plt.title("UMAP Projection of Document and Query Embeddings")
 plt.axis('off')
