@@ -1,0 +1,9 @@
+turbovec
+pypdf
+ollama
+pandas
+langchain-text-splitters
+sentence-transformers
+umap-learn
+matplotlib
+langchain_huggingface
