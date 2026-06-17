@@ -107,10 +107,13 @@ for doc_list in retrieved_documents:
     for doc in doc_list:
         unique_documents.add(doc)
 
+retrieved_documents_list = sorted(unique_documents)
+
 # UMAP visualization
 embeddings_arr = np.asarray(embedding_model.embed_documents(token), dtype=np.float32)
 original_query_emb = np.asarray(embedding_model.embed_query(query), dtype=np.float32)[None, :]
 augmented_query_embs = np.asarray([embedding_model.embed_query(q) for q in augmented_queries], dtype=np.float32)
+retrieved_documents_embs = np.asarray(embedding_model.embed_documents(retrieved_documents_list), dtype=np.float32)
 
 # fit UMAP (use n_components=2 for 2D)
 umap_transformer = umap.UMAP(n_components=2, random_state=0)
@@ -119,10 +122,12 @@ projected_embeddings = umap_transformer.fit_transform(embeddings_arr)
 # transform queries
 original_query_embedding = umap_transformer.transform(original_query_emb)
 augmented_query_embeddings = umap_transformer.transform(augmented_query_embs)
+retrieved_documents_embeddings = umap_transformer.transform(retrieved_documents_embs)
 
 # create visualization
 plt.figure(figsize=(12, 8))
 plt.scatter(projected_embeddings[:, 0], projected_embeddings[:, 1], label='Document Embeddings', s=10, color='gray', alpha=0.6)
+plt.scatter(retrieved_documents_embeddings[:, 0], retrieved_documents_embeddings[:, 1], label='Retrieved Documents', s=130, color='#1f77b4', marker='D', edgecolors='white', linewidth=1.2, alpha=0.95)
 plt.scatter(original_query_embedding[:, 0], original_query_embedding[:, 1], label='Original Query', s=200, color='red', marker='*', edgecolors='black', linewidth=2)
 plt.scatter(augmented_query_embeddings[:, 0], augmented_query_embeddings[:, 1], label='Augmented Queries', s=150, color='green', marker='o', edgecolors='black', linewidth=1.5)
 
@@ -134,3 +139,31 @@ plt.legend(loc='best', fontsize=10)
 plt.grid(True, alpha=0.3)
 plt.tight_layout()
 plt.show()
+
+def generate_answer(query, retrieved_chunks):
+    prompt = f"""
+        You are an expert AI assistant providing answers based on retrieved information from the book "The Last Lecture" by Randy Pausch. 
+
+        Based on the retrieved chunks of text from the book, provide a concise and accurate answer to the user's question. Use only the information contained in the retrieved chunks to formulate your response. Do not include any information that is not present in the retrieved chunks.
+
+        ### Retrieved Chunks:
+        {retrieved_chunks}
+
+        ### Instructions:
+        1. Analyze the retrieved chunks to find relevant information that directly answers the user's question.
+        2. Synthesize the information into a clear and concise answer.
+        3. Do NOT include any personal opinions or information that is not supported by the retrieved chunks.
+
+        ### Output Format:
+        Provide your answer as a single paragraph of text without any markdown formatting or additional explanations.
+    """.strip()
+    messages = [
+        {"role": "system", "content": prompt},
+        {"role": "user", "content": query}
+    ]
+
+    response = ollama_client.chat(model="qwen3:0.6b", messages=messages)
+    return response['message']['content']
+
+final_answer = generate_answer(query, "\n\n".join(retrieved_documents_list))
+print("Final Answer:", final_answer)

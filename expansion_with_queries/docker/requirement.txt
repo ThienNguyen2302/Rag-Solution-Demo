@@ -1,9 +1,7 @@
-turbovec
-pypdf
-ollama
-pandas
-langchain-text-splitters
-sentence-transformers
-umap-learn
-matplotlib
-langchain_huggingface
+turbovec==0.8.0
+pypdf==6.13.0
+ollama==0.6.2
+langchain-text-splitters==1.1.2
+sentence-transformers==5.5.1
+umap-learn==0.5.12
+matplotlib==3.10.9
