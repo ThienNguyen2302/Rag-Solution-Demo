@@ -36,8 +36,8 @@ chunks = character_splitter.split_text("\n\n".join(texts))
 token_splitter = SentenceTransformersTokenTextSplitter(chunk_overlap=0, tokens_per_chunk=256)
 token = []
 
-for chunks in chunks:
-    token += token_splitter.split_text(chunks)
+for chunk in chunks:
+    token += token_splitter.split_text(chunk)
 
 # print(f"Number of tokenized chunks: {len(token)}")
 # print(f"First tokenized chunk: {token[0]}")
@@ -97,8 +97,6 @@ results = collection.query(query_texts=[expanded_query], n_results=5, include=["
 retrieved_document = results['documents'][0]
 
 embeddings = collection.get(include=["embeddings"])['embeddings']
-umap_transformer = umap.UMAP(n_components=0, transform_seed=0)
-retrieved_embeddings = results['embeddings'][0]
 
 # prepare arrays
 embeddings_arr = np.array(embeddings)  # shape (n_docs, dim)
@@ -113,13 +111,42 @@ projected_embeddings = umap_transformer.fit_transform(embeddings_arr)
 original_query_embedding = umap_transformer.transform(query_emb)
 expanded_query_embedding = umap_transformer.transform(expanded_query_emb)
 
-plt.figure()
-plt.scatter(projected_embeddings[:, 0], projected_embeddings[:, 1], label='Document Embeddings', s=10, color='gray')
-plt.scatter(original_query_embedding[:, 0], original_query_embedding[:, 1], label='Original Query', s=100, color='red', marker='x')
-plt.scatter(expanded_query_embedding[:, 0], expanded_query_embedding[:, 1], label='Expanded Answer', s=100, color='green', marker='o')
-plt.gca().set_aspect('equal', adjustable='datalim')
-plt.title("UMAP Projection of Document and Query Embeddings")
-plt.axis('off')
+plt.style.use("seaborn-v0_8-whitegrid")
+plt.figure(figsize=(11, 8), dpi=120)
+plt.scatter(
+    projected_embeddings[:, 0],
+    projected_embeddings[:, 1],
+    label="Document Embeddings",
+    s=18,
+    color="#7a7a7a",
+    alpha=0.35,
+    linewidths=0,
+)
+plt.scatter(
+    original_query_embedding[:, 0],
+    original_query_embedding[:, 1],
+    label="Original Query",
+    s=140,
+    color="#d62828",
+    marker="x",
+    linewidths=2.5,
+)
+plt.scatter(
+    expanded_query_embedding[:, 0],
+    expanded_query_embedding[:, 1],
+    label="Expanded Answer",
+    s=140,
+    color="#2a9d8f",
+    marker="o",
+    edgecolors="white",
+    linewidths=1.5,
+)
+plt.gca().set_aspect("equal", adjustable="datalim")
+plt.title("UMAP Projection of Document and Query Embeddings", pad=14)
+plt.xlabel("UMAP-1")
+plt.ylabel("UMAP-2")
+plt.legend(frameon=True, loc="best")
+plt.tight_layout()
 plt.show()
 
 def generate_answer(query, retrieved_chunks, model="qwen3:0.6b"):
