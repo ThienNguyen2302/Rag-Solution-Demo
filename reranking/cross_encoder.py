@@ -1,8 +1,6 @@
 import os
-import json
 from pathlib import Path
 from turbovec.langchain import TurboQuantVectorStore
-import umap
 import numpy as np
 from pypdf import PdfReader
 from ollama import Client as OllamaClient 
@@ -12,7 +10,6 @@ from langchain_text_splitters import (
     SentenceTransformersTokenTextSplitter,
 )
 from sentence_transformers import SentenceTransformer, CrossEncoder
-import matplotlib.pyplot as plt
 
 # this class is used to load into the vector store
 class SentenceTransformerEmbeddings:
