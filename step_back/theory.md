@@ -124,13 +124,13 @@ Một lần tìm kiếm chính
 
 Mục tiêu chính là lấy được kiến thức nền và nguyên lý liên quan đến câu hỏi chi tiết.
 
-| Tiêu chí | Query Expansion | Step-Back Prompting |
-|---|---|---|
-| Số lượng query | Nhiều query | Một query tổng quát |
-| Cách thay đổi | Đổi cách diễn đạt | Lùi lên mức khái niệm rộng hơn |
-| Mục tiêu | Tăng recall | Tìm kiến thức nền |
-| Chi phí retrieval | Nhiều lần search | Một lần search chính |
-| Rủi ro | Có thể sinh query nhiễu | Có thể quá tổng quát |
+| Tiêu chí          | Query Expansion         | Step-Back Prompting            |
+| ----------------- | ----------------------- | ------------------------------ |
+| Số lượng query    | Nhiều query             | Một query tổng quát            |
+| Cách thay đổi     | Đổi cách diễn đạt       | Lùi lên mức khái niệm rộng hơn |
+| Mục tiêu          | Tăng recall             | Tìm kiến thức nền              |
+| Chi phí retrieval | Nhiều lần search        | Một lần search chính           |
+| Rủi ro            | Có thể sinh query nhiễu | Có thể quá tổng quát           |
 
 ## Step-Back khác Decomposition như thế nào?
 
