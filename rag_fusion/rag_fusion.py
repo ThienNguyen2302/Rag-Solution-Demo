@@ -13,7 +13,7 @@ from langchain_text_splitters import (
 )
 from sentence_transformers import SentenceTransformer
 import matplotlib.pyplot as plt
-from rag_fusion.rrf import fuse_results_rrf
+from rrf import fuse_results_rrf
 
 # this class is used to load into the vector store
 class SentenceTransformerEmbeddings:
