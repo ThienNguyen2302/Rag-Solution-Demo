@@ -1,111 +1,12 @@
 """
-Multi-Representation Indexing Technique for RAG Systems
-
-This module implements multi-representation indexing, which stores multiple
-representations of the same document to capture different aspects and improve
-retrieval effectiveness in Retrieval-Augmented Generation (RAG) systems.
-
-Multi-representation indexing strategies:
-- Different chunking granularities (sentence, paragraph, document)
-- Different indexing approaches (keyword, vector, hybrid) per representation
-- Different document views (title, abstract, full text, summary)
-- Different transformation representations (questions answered, hypothetical answers)
-- Fusion techniques for combining results from multiple representations
-
-This approach improves recall by ensuring that queries matching any
-representation can retrieve the relevant document.
+Multi-representation index that maintains multiple indexes for
+different representations of the same document collection.
 """
 
-from typing import List, Dict, Any, Optional, Tuple, Union, Callable
-from dataclasses import dataclass, field
-from enum import Enum
-import re
-import json
-import hashlib
-from abc import ABC, abstractmethod
-import math
-import numpy as np
-
-
-class RepresentationType(Enum):
-    """Types of document representations"""
-    FULL_TEXT = "full_text"           # Complete document
-    SUMMARY = "summary"               # Document summary
-    TITLE_ABSTRACT = "title_abstract" # Title and abstract only
-    QUESTIONS = "questions"           # Questions the document answers
-    HYPOTHETICAL_ANSWERS = "hypothetical_answers"  # Hypothetical answers (HyDE-style)
-    KEY_PHRASES = "key_phrases"       # Important phrases/keywords
-    ENTITIES = "entities"             # Named entities
-    STRUCTURED = "structured"         # Structured data/views
-
-
-class FusionStrategy(Enum):
-    """Strategies for fusing results from multiple representations"""
-    WEIGHTED_SUM = "weighted_sum"         # Weighted sum of scores
-    MAX_SCORE = "max_score"               # Take maximum score per document
-    RANK_FUSION = "rank_fusion"           # Fusion based on rankings (RRF)
-    DISTRIBUTION_BASED = "distribution_based"  # Score distribution-based fusion
-    LEARNING_BASED = "learning_based"     # Learned fusion (requires training)
-
-
-@dataclass
-class RepresentationConfig:
-    """Configuration for a specific representation"""
-    name: str                           # Unique identifier for this representation
-    type: RepresentationType            # Type of representation
-    index_type: str                     # Index type to use (inverted, vector, hybrid)
-    chunking_strategy: Optional[str] = None  # Chunking strategy for this representation
-    weight: float = 1.0                 # Weight in fusion (default 1.0)
-    enabled: bool = True                # Whether this representation is active
-    transform_function: Optional[Callable[[str], str]] = None  # Function to transform content
-    metadata: Dict[str, Any] = field(default_factory=dict)  # Additional configuration
-
-
-@dataclass
-class MultiRepresentationResult:
-    """Result from multi-representation search"""
-    document_id: str
-    score: float
-    representation_scores: Dict[str, float]  # Scores from each representation
-    representations_used: List[str]          # Which representations contributed
-    metadata: Dict[str, Any] = field(default_factory=dict)
-
-
-class BaseRepresentationIndex(ABC):
-    """Abstract base class for representation-specific indexes"""
-
-    def __init__(self, name: str, config: RepresentationConfig):
-        self.name = name
-        self.config = config
-        self.documents: Dict[str, Dict[str, Any]] = {}
-        self.index: Optional[Any] = None  # Will be set to specific index implementation
-        self.is_built = False
-
-    @abstractmethod
-    def build_index(self, documents: Dict[str, str],
-                   metadatas: Optional[Dict[str, Dict[str, Any]]] = None) -> None:
-        """Build the index from documents"""
-        pass
-
-    @abstractmethod
-    def search(self, query: str, top_k: int = 10) -> List[Tuple[str, float]]:
-        """Search the representation index"""
-        pass
-
-    @abstractmethod
-    def add_document(self, document_id: str, content: str,
-                    metadata: Optional[Dict[str, Any]] = None) -> List[str]:
-        """Add a single document"""
-        pass
-
-    @abstractmethod
-    def delete_document(self, document_id: str) -> bool:
-        """Delete a document"""
-        pass
-
-    def get_document(self, document_id: str) -> Optional[Dict[str, Any]]:
-        """Get document metadata"""
-        return self.documents.get(document_id)
+from typing import List, Dict, Any, Optional, Tuple
+from .enums import RepresentationType, FusionStrategy
+from .datastructures import RepresentationConfig, MultiRepresentationResult
+from .base_representation_index import BaseRepresentationIndex
 
 
 class MultiRepresentationIndex:
@@ -142,7 +43,13 @@ class MultiRepresentationIndex:
         """Create an index instance for a representation configuration"""
         # Import the index classes from our existing implementation
         # In a real implementation, these would be properly imported
-        from indexing_technique import InvertedIndex, VectorIndex, HybridIndex, BaseIndex
+        # For now, we'll import from the basic indexing module
+        import sys
+        import os
+        sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'basic'))
+        from inverted_index import InvertedIndex
+        from vector_index import VectorIndex
+        from hybrid_index import HybridIndex
 
         # Create a wrapper that adapts our existing indexes to the representation interface
         class RepresentationIndexWrapper(BaseRepresentationIndex):
@@ -432,7 +339,7 @@ class MultiRepresentationIndex:
             scores = [score for _, score in results]
             mean_score = sum(scores) / len(scores)
             variance = sum((x - mean_score) ** 2 for x in scores) / len(scores)
-            std_score = math.sqrt(variance) if variance > 0 else 1.0
+            std_score = (variance ** 0.5) if variance > 0 else 1.0
 
             rep_stats[rep_name] = {"mean": mean_score, "std": std_score}
 
@@ -511,13 +418,21 @@ class MultiRepresentationIndex:
         }
 
         for rep_name, rep_index in self.representations.items():
+            # Try to get stats from the underlying index if available
             if hasattr(rep_index, "index") and hasattr(rep_index.index, "get_stats"):
-                rep_stats = rep_index.index.get_stats()
-                stats["representations"][rep_name] = {
-                    "type": rep_index.config.index_type,
-                    "enabled": rep_index.config.enabled,
-                    "stats": rep_stats,
-                }
+                try:
+                    rep_stats = rep_index.index.get_stats()
+                    stats["representations"][rep_name] = {
+                        "type": rep_index.config.index_type,
+                        "enabled": rep_index.config.enabled,
+                        "stats": rep_stats,
+                    }
+                except AttributeError:
+                    stats["representations"][rep_name] = {
+                        "type": rep_index.config.index_type,
+                        "enabled": rep_index.config.enabled,
+                        "stats": "Not available",
+                    }
             else:
                 stats["representations"][rep_name] = {
                     "type": rep_index.config.index_type,
@@ -526,180 +441,3 @@ class MultiRepresentationIndex:
                 }
 
         return stats
-
-
-def create_default_multi_representation_configs() -> List[RepresentationConfig]:
-    """Create a standard set of representation configurations."""
-    return [
-        RepresentationConfig(
-            name="full_text_inverted",
-            type=RepresentationType.FULL_TEXT,
-            index_type="inverted",
-            weight=1.0,
-            metadata={"description": "Full text with keyword indexing"},
-        ),
-        RepresentationConfig(
-            name="full_text_vector",
-            type=RepresentationType.FULL_TEXT,
-            index_type="vector",
-            weight=1.0,
-            metadata={"description": "Full text with semantic indexing"},
-        ),
-        RepresentationConfig(
-            name="title_vector",
-            type=RepresentationType.TITLE_ABSTRACT,
-            index_type="vector",
-            weight=1.2,
-            metadata={"description": "Title-focused semantic search"},
-            transform_function=lambda text: _extract_title(text),
-        ),
-        RepresentationConfig(
-            name="summary_hybrid",
-            type=RepresentationType.SUMMARY,
-            index_type="hybrid",
-            weight=1.1,
-            metadata={"description": "Summary with hybrid indexing"},
-            transform_function=lambda text: _extract_summary(text),
-        ),
-        RepresentationConfig(
-            name="questions_vector",
-            type=RepresentationType.QUESTIONS,
-            index_type="vector",
-            weight=1.0,
-            metadata={"description": "Questions the document answers"},
-            transform_function=lambda text: _generate_questions(text),
-        ),
-    ]
-
-
-def _extract_title(text: str) -> str:
-    """Extract title from text (simplified)."""
-    lines = text.strip().split("\n")
-    if lines:
-        for line in lines[:3]:
-            stripped = line.strip()
-            if len(stripped) < 100 and len(stripped) > 0:
-                return stripped
-    return lines[0] if lines else text[:100]
-
-
-def _extract_summary(text: str) -> str:
-    """Extract summary from text (simplified - first few sentences)."""
-    sentences = re.split(r"[.!?]+", text)
-    summary_sentences = [sentence.strip() for sentence in sentences if sentence.strip()][:3]
-    return ". ".join(summary_sentences) + ("." if summary_sentences else "")
-
-
-def _generate_questions(text: str) -> str:
-    """Generate questions that the text answers (simplified)."""
-    questions: List[str] = []
-
-    if " is " in text.lower() or " are " in text.lower():
-        lines = text.split(".")
-        for line in lines:
-            lower_line = line.lower()
-            if " is " in lower_line or " are " in lower_line:
-                if " is " in lower_line:
-                    subject = line.split(" is ")[0].strip()
-                    questions.append(f"What is {subject}?")
-                if " are " in lower_line:
-                    subject = line.split(" are ")[0].strip()
-                    questions.append(f"What are {subject}?")
-
-    if " how to " in text.lower():
-        lines = text.split(".")
-        for line in lines:
-            lower_line = line.lower()
-            if " how to " in lower_line:
-                action = line.split(" how to ", 1)[1].strip()
-                questions.append(f"How to {action}?")
-
-    if not questions:
-        words = re.findall(r"\b[a-zA-Z]+\b", text.lower())
-        if words:
-            key_words = [word for word in words if len(word) > 4][:3]
-            if key_words:
-                questions.append(f"What is {key_words[0]}?")
-                questions.append(f"How does {key_words[0]} work?")
-                if len(key_words) > 1:
-                    questions.append(
-                        f"What is the relationship between {key_words[0]} and {key_words[1]}?"
-                    )
-
-    return " ".join(questions)
-
-
-if __name__ == "__main__":
-    configs = create_default_multi_representation_configs()
-    mri = MultiRepresentationIndex(
-        representation_configs=configs,
-        fusion_strategy=FusionStrategy.WEIGHTED_SUM,
-    )
-
-    documents = {
-        "doc1": "The quick brown fox jumps over the lazy dog. This is a sentence about animals. Foxes are known for their agility and red fur.",
-        "doc2": "Python is a popular programming language for data science and machine learning. It has many libraries like NumPy, Pandas, and TensorFlow. Created by Guido van Rossum.",
-        "doc3": "Climate change is causing rising sea levels and extreme weather events. Scientists recommend reducing carbon emissions to mitigate these effects. The IPCC reports show alarming trends.",
-        "doc4": "To bake a chocolate cake, you need flour, sugar, cocoa powder, eggs, and butter. Mix the dry ingredients, then add wet ingredients, and bake at 350°F for 30 minutes. Let cool before serving.",
-        "doc5": "The theory of relativity, proposed by Albert Einstein, revolutionized our understanding of space, time, and gravity. It includes special relativity and general relativity. E=mc^2 is the famous equation.",
-    }
-
-    print("Adding documents to multi-representation index...")
-    all_chunk_ids = {}
-    for doc_id, content in documents.items():
-        chunk_ids = mri.add_document(doc_id, content)
-        all_chunk_ids[doc_id] = chunk_ids
-        print(f"Added document '{doc_id}' to {len(chunk_ids)} representations")
-
-    stats = mri.get_stats()
-    print("\nIndex Statistics:")
-    print(f"  Total documents: {stats['total_documents']}")
-    for rep_name, rep_info in stats["representations"].items():
-        print(f"  Representation '{rep_name}': {rep_info['type']} (enabled: {rep_info['enabled']})")
-
-    test_queries = [
-        "What is Python used for?",
-        "How to bake a cake?",
-        "Climate change effects",
-        "Theory of relativity Einstein",
-        "quick brown fox",
-        "Who invented Python?",
-        "What are the effects of climate change?",
-        "chocolate cake ingredients",
-    ]
-
-    print("\nSearch Results (Multi-Representation Fusion):")
-    print("=" * 60)
-
-    for query in test_queries:
-        print(f"\nQuery: '{query}'")
-        results = mri.search(query, top_k=3)
-
-        if results:
-            for i, result in enumerate(results, 1):
-                print(f"  {i}. Document: {result.document_id} (Score: {result.score:.4f})")
-                print(f"     Representations used: {', '.join(result.representations_used)}")
-                sorted_rep_scores = sorted(
-                    result.representation_scores.items(),
-                    key=lambda x: x[1],
-                    reverse=True,
-                )[:2]
-                for rep_name, score in sorted_rep_scores:
-                    print(f"       {rep_name}: {score:.2f}")
-                if result.metadata:
-                    preview = str(list(result.metadata.values())[0])[:50] if result.metadata else ""
-                    print(f"     Metadata preview: {preview}")
-        else:
-            print("  No results found")
-
-    print("\nDeleting document 'doc2'...")
-    success = mri.delete_document("doc2")
-    print(f"Deletion successful: {success}")
-
-    print("\nSearching for 'Python' after deletion:")
-    results = mri.search("Python", top_k=3)
-    if results:
-        for result in results:
-            print(f"  Document: {result.document_id} (Score: {result.score:.4f})")
-    else:
-        print("  No results found (as expected)")
