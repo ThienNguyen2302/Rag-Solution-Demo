@@ -1,97 +1,97 @@
-# Multi-Representation Indexing for RAG Systems
+# Lập chỉ mục đa biểu diễn cho hệ thống RAG
 
-## Overview
+## Tổng quan
 
-Multi-representation indexing is an advanced technique that stores multiple representations of the same document to capture different aspects and improve retrieval effectiveness in Retrieval-Augmented Generation (RAG) systems. This approach recognizes that different queries may match different aspects of a document, and by maintaining various representations, we can improve recall without sacrificing precision.
+Lập chỉ mục đa biểu diễn là một kỹ thuật nâng cao, lưu trữ nhiều biểu diễn của cùng một tài liệu để nắm bắt các khía cạnh khác nhau và cải thiện hiệu quả truy xuất trong hệ thống Retrieval-Augmented Generation (RAG). Phương pháp này thừa nhận rằng các truy vấn khác nhau có thể khớp với những khía cạnh khác nhau của tài liệu. Bằng cách duy trì nhiều biểu diễn, ta có thể cải thiện độ bao phủ mà không làm giảm độ chính xác.
 
-## Core Concept
+## Khái niệm cốt lõi
 
-The fundamental idea is to create multiple views or representations of each document, index each representation appropriately (potentially with different indexing strategies), and then fuse the results during query time. This is particularly effective because:
+Ý tưởng cơ bản là tạo nhiều góc nhìn hoặc biểu diễn cho mỗi tài liệu, lập chỉ mục phù hợp cho từng biểu diễn (có thể dùng các chiến lược khác nhau), rồi hợp nhất kết quả tại thời điểm truy vấn. Cách làm này đặc biệt hiệu quả vì:
 
-1. **Different queries match different aspects**: A query about "Python programming" might match the full text, while "Who created Python?" might match better with a question-answer representation
-2. **Different indexing strategies suit different content**: Keyword indexing works well for exact terms, while vector indexing excels at semantic similarity
-3. **Compensates for representation limitations**: No single representation captures all relevant aspects of a document
+1. **Các truy vấn khác nhau khớp với các khía cạnh khác nhau**: Truy vấn về “lập trình Python” có thể khớp với toàn văn, trong khi “Ai tạo ra Python?” có thể khớp tốt hơn với biểu diễn hỏi–đáp
+2. **Các chiến lược lập chỉ mục khác nhau phù hợp với các loại nội dung khác nhau**: Lập chỉ mục từ khóa phù hợp với thuật ngữ chính xác, còn lập chỉ mục vector nổi bật ở tương đồng ngữ nghĩa
+3. **Bù đắp hạn chế của từng biểu diễn**: Không một biểu diễn đơn lẻ nào nắm bắt được mọi khía cạnh liên quan của tài liệu
 
-## Common Representation Types
+## Các loại biểu diễn phổ biến
 
-### 1. Full Text Representation
-- **Content**: Complete document text
-- **Best for**: Comprehensive coverage, detailed information retrieval
-- **Indexing**: Often uses both inverted (keyword) and vector (semantic) indexes
+### 1. Biểu diễn toàn văn
+- **Nội dung**: Toàn bộ văn bản của tài liệu
+- **Phù hợp nhất cho**: Bao phủ toàn diện, truy xuất thông tin chi tiết
+- **Lập chỉ mục**: Thường dùng cả chỉ mục đảo (từ khóa) và chỉ mục vector (ngữ nghĩa)
 
-### 2. Summary Representation
-- **Content**: Condensed version of the document
-- **Best for**: Quick topic matching, filtering irrelevant documents
-- **Indexing**: Vector indexing often works well for semantic summary matching
+### 2. Biểu diễn tóm tắt
+- **Nội dung**: Phiên bản cô đọng của tài liệu
+- **Phù hợp nhất cho**: Đối sánh chủ đề nhanh, lọc tài liệu không liên quan
+- **Lập chỉ mục**: Lập chỉ mục vector thường phù hợp với đối sánh tóm tắt theo ngữ nghĩa
 
-### 3. Title-Abstract Representation
-- **Content**: Title and abstract/summary sections only
-- **Best for**: Quick topical filtering, academic paper retrieval
-- **Rationale**: Titles and abstracts often contain the most salient information
+### 3. Biểu diễn tiêu đề–tóm tắt
+- **Nội dung**: Chỉ gồm tiêu đề và phần tóm tắt
+- **Phù hợp nhất cho**: Lọc chủ đề nhanh, truy xuất bài viết học thuật
+- **Lý do**: Tiêu đề và phần tóm tắt thường chứa thông tin nổi bật nhất
 
-### 4. Question-Based Representation
-- **Content**: Questions that the document answers (generated or extracted)
-- **Best for**: Query matching in QA systems, conversational retrieval
-- **Rationale**: Directly aligns with user query format
+### 4. Biểu diễn dựa trên câu hỏi
+- **Nội dung**: Các câu hỏi mà tài liệu trả lời (được sinh ra hoặc trích xuất)
+- **Phù hợp nhất cho**: Đối sánh truy vấn trong hệ thống hỏi–đáp, truy xuất hội thoại
+- **Lý do**: Căn chỉnh trực tiếp với định dạng truy vấn của người dùng
 
-### 5. Entity-Based Representation
-- **Content**: Named entities (people, places, organizations, etc.)
-- **Best for**: Entity-focused queries, fact-checking, disambiguation
-- **Indexing**: Often works well with inverted indexes for exact entity matching
+### 5. Biểu diễn dựa trên thực thể
+- **Nội dung**: Thực thể có tên (người, địa điểm, tổ chức, v.v.)
+- **Phù hợp nhất cho**: Truy vấn tập trung vào thực thể, kiểm chứng thông tin, phân giải mơ hồ
+- **Lập chỉ mục**: Thường phù hợp với chỉ mục đảo để đối sánh thực thể chính xác
 
-### 6. Key Phrase Representation
-- **Content**: Important phrases/keywords extracted from the document
-- **Best for**: Topic modeling, concept matching, tag-based retrieval
-- **Rationale**: Captures the essence without full text noise
+### 6. Biểu diễn cụm từ khóa
+- **Nội dung**: Các cụm từ hoặc từ khóa quan trọng được trích xuất từ tài liệu
+- **Phù hợp nhất cho**: Mô hình hóa chủ đề, đối sánh khái niệm, truy xuất dựa trên thẻ
+- **Lý do**: Nắm bắt cốt lõi nội dung mà không bị nhiễu bởi toàn bộ văn bản
 
-## Fusion Strategies
+## Chiến lược hợp nhất
 
-After retrieving results from each representation, we need to combine (fuse) them effectively:
+Sau khi truy xuất kết quả từ từng biểu diễn, cần kết hợp chúng một cách hiệu quả:
 
-### 1. Weighted Sum
-- **How**: Normalize scores from each representation, apply weights, sum them
-- **Best for**: When representations have complementary strengths
-- **Flexibility**: Easy to tune weights based on representation importance
+### 1. Tổng có trọng số
+- **Cách làm**: Chuẩn hóa điểm từ từng biểu diễn, áp dụng trọng số rồi cộng lại
+- **Phù hợp nhất khi**: Các biểu diễn có ưu điểm bổ trợ cho nhau
+- **Tính linh hoạt**: Dễ điều chỉnh trọng số dựa trên mức độ quan trọng của từng biểu diễn
 
-### 2. Max Score
-- **How**: Take the maximum score across all representations for each document
-- **Best for**: When any strong match in any representation is sufficient
-- **Conservative**: Tend to favor documents with at least one very strong match
+### 2. Điểm cao nhất
+- **Cách làm**: Lấy điểm cao nhất của mọi biểu diễn cho mỗi tài liệu
+- **Phù hợp nhất khi**: Chỉ cần một biểu diễn khớp mạnh là đủ
+- **Tính bảo thủ**: Có xu hướng ưu tiên tài liệu có ít nhất một kết quả khớp rất mạnh
 
-### 3. Rank Fusion (RRF)
-- **How**: Convert rankings to scores using 1/(k + rank) formula, then sum
-- **Best for**: When rankings are more reliable than raw scores
-- **Robust**: Less sensitive to score distribution differences between representations
+### 3. Hợp nhất thứ hạng (RRF)
+- **Cách làm**: Chuyển thứ hạng thành điểm bằng công thức 1/(k + thứ hạng), sau đó cộng lại
+- **Phù hợp nhất khi**: Thứ hạng đáng tin cậy hơn điểm số thô
+- **Tính bền vững**: Ít nhạy cảm hơn với khác biệt về phân phối điểm giữa các biểu diễn
 
-### 4. Distribution-Based (Z-score)
-- **How**: Normalize scores using Z-score normalization per representation, then combine
-- **Best for**: When score distributions vary significantly between representations
-- **Statistical**: Accounts for varying score ranges and variances
+### 4. Dựa trên phân phối (điểm Z)
+- **Cách làm**: Chuẩn hóa điểm bằng điểm Z cho từng biểu diễn rồi kết hợp
+- **Phù hợp nhất khi**: Phân phối điểm giữa các biểu diễn khác nhau đáng kể
+- **Tính thống kê**: Xử lý sự khác nhau về khoảng điểm và phương sai
 
-## Implementation Approach
+## Cách tiếp cận triển khai
 
-This implementation follows a modular design:
+Phần triển khai này tuân theo thiết kế mô-đun:
 
-1. **RepresentationConfig**: Defines how each representation should be indexed
-2. **BaseRepresentationIndex**: Abstract interface for representation-specific indexes
-3. **RepresentationIndexWrapper**: Adapts existing indexes (inverted, vector, hybrid) to the representation interface
-4. **MultiRepresentationIndex**: Main class that manages multiple representations and handles fusion
-5. **Helper Functions**: Default configurations and transformation functions (title extraction, summary generation, question generation)
+1. **RepresentationConfig**: Xác định cách lập chỉ mục cho từng biểu diễn
+2. **BaseRepresentationIndex**: Giao diện trừu tượng cho chỉ mục theo từng biểu diễn
+3. **RepresentationIndexWrapper**: Điều chỉnh các chỉ mục hiện có (đảo, vector, lai) theo giao diện biểu diễn
+4. **MultiRepresentationIndex**: Lớp chính quản lý nhiều biểu diễn và xử lý việc hợp nhất
+5. **Các hàm hỗ trợ**: Cấu hình mặc định và hàm biến đổi (trích xuất tiêu đề, tạo tóm tắt, tạo câu hỏi)
 
-## Advantages
+## Ưu điểm
 
-- **Improved Recall**: Queries matching any representation can retrieve the relevant document
-- **Flexibility**: Different representations can use different indexing strategies
-- **Interpretability**: Can see which representations contributed to a match
-- **Customizable**: Easy to add new representation types or fusion strategies
+- **Cải thiện độ bao phủ**: Truy vấn khớp với bất kỳ biểu diễn nào cũng có thể truy xuất tài liệu liên quan
+- **Linh hoạt**: Mỗi biểu diễn có thể sử dụng một chiến lược lập chỉ mục khác nhau
+- **Dễ diễn giải**: Có thể thấy biểu diễn nào đóng góp vào kết quả khớp
+- **Có thể tùy chỉnh**: Dễ dàng thêm loại biểu diễn hoặc chiến lược hợp nhất mới
 
-## When to Use
+## Khi nào nên sử dụng
 
-Multi-representation indexing is particularly beneficial when:
-- Document collection is heterogeneous in content/style
-- User queries vary widely in format and intent
-- Precision is important but recall needs improvement
-- Resources allow for maintaining multiple indexes
-- Query logs show patterns that specific representations would catch
+Lập chỉ mục đa biểu diễn đặc biệt hữu ích khi:
+- Tập hợp tài liệu không đồng nhất về nội dung hoặc phong cách
+- Truy vấn của người dùng rất đa dạng về định dạng và mục đích
+- Độ chính xác quan trọng nhưng cần cải thiện độ bao phủ
+- Tài nguyên cho phép duy trì nhiều chỉ mục
+- Nhật ký truy vấn cho thấy các mẫu mà một số biểu diễn cụ thể có thể bắt được
 
-The technique adds storage and query-time computational overhead but often provides significant retrieval quality improvements that justify the cost.
+Kỹ thuật này làm tăng chi phí lưu trữ và tính toán tại thời điểm truy vấn, nhưng thường mang lại cải thiện đáng kể về chất lượng truy xuất, đủ để biện minh cho chi phí đó.

@@ -1,113 +1,113 @@
-# RAPTOR (Recursive Abstractive Processing for Tree-Organized Retrieval) for RAG Systems
+# RAPTOR (Xử lý trừu tượng đệ quy cho truy xuất được tổ chức theo cây) trong hệ thống RAG
 
-## Overview
+## Tổng quan
 
-RAPTOR (Recursive Abstractive Processing for Tree-Organized Retrieval) is an advanced retrieval technique that builds a hierarchical tree structure by recursively summarizing chunks of text at increasing levels of abstraction. This approach enables retrieval at different levels of detail and improves performance on queries requiring global context understanding.
+RAPTOR (Recursive Abstractive Processing for Tree-Organized Retrieval) là một kỹ thuật truy xuất nâng cao, xây dựng cấu trúc cây phân cấp bằng cách đệ quy tóm tắt các đoạn văn bản ở những mức độ trừu tượng tăng dần. Phương pháp này cho phép truy xuất ở nhiều mức độ chi tiết khác nhau và cải thiện hiệu năng đối với các truy vấn cần hiểu ngữ cảnh tổng thể.
 
-## Core Problem
+## Vấn đề cốt lõi
 
-Traditional retrieval methods face a fundamental tension:
-- **Local precision**: Short chunks capture precise details but miss broader context
-- **Global recall**: Long chunks or whole documents capture context but dilute specific matches
+Các phương pháp truy xuất truyền thống phải đối mặt với sự đánh đổi cơ bản:
+- **Độ chính xác cục bộ**: Các đoạn ngắn nắm bắt được chi tiết chính xác nhưng bỏ sót ngữ cảnh rộng hơn
+- **Độ bao phủ toàn cục**: Các đoạn dài hoặc toàn bộ tài liệu nắm bắt được ngữ cảnh nhưng làm loãng các kết quả khớp cụ thể
 
-RAPTOR resolves this by creating a multi-resolution representation of the knowledge base, allowing the system to retrieve information at the appropriate level of abstraction for each query.
+RAPTOR giải quyết vấn đề này bằng cách tạo ra biểu diễn cơ sở tri thức ở nhiều độ phân giải, cho phép hệ thống truy xuất thông tin ở mức độ trừu tượng phù hợp với từng truy vấn.
 
-## The RAPTOR Process
+## Quy trình RAPTOR
 
-### 1. Document Chunking (Leaf Level)
-- Documents are split into small chunks (typically 100-200 tokens)
-- Each chunk becomes a leaf node in the tree
-- Embeddings are generated for each leaf node
+### 1. Chia nhỏ tài liệu (mức nút lá)
+- Tài liệu được chia thành các đoạn nhỏ (thường từ 100–200 token)
+- Mỗi đoạn trở thành một nút lá trong cây
+- Embedding được tạo cho từng nút lá
 
-### 2. Recursive Clustering and Summarization
-- Leaf nodes are clustered based on semantic similarity
-- Each cluster is summarized to create a parent node (more abstract representation)
-- Parent nodes are embedded and become the input for the next level
-- Process continues until reaching the desired tree height or convergence
+### 2. Phân cụm và tóm tắt đệ quy
+- Các nút lá được phân cụm dựa trên độ tương đồng ngữ nghĩa
+- Mỗi cụm được tóm tắt để tạo thành một nút cha (biểu diễn trừu tượng hơn)
+- Các nút cha được tạo embedding và trở thành đầu vào cho cấp tiếp theo
+- Quy trình tiếp tục cho đến khi đạt chiều cao cây mong muốn hoặc hội tụ
 
-### 3. Tree Structure
-- **Level 0**: Leaf nodes (original chunks)
-- **Level 1**: Summaries of leaf clusters
-- **Level 2**: Summaries of level 1 clusters
+### 3. Cấu trúc cây
+- **Cấp 0**: Các nút lá (các đoạn ban đầu)
+- **Cấp 1**: Bản tóm tắt của các cụm nút lá
+- **Cấp 2**: Bản tóm tắt của các cụm cấp 1
 - ...
-- **Level N**: Root node(s) representing the most abstract concepts
+- **Cấp N**: Các nút gốc biểu diễn những khái niệm trừu tượng nhất
 
-### 4. Retrieval Mechanism
-- Query is embedded and compared against nodes at all levels
-- Results can be returned from any level depending on query specificity
-- Hierarchical context can be provided (showing parent/child relationships)
-- Enables both precise detail retrieval and global concept matching
+### 4. Cơ chế truy xuất
+- Truy vấn được tạo embedding và so sánh với các nút ở mọi cấp
+- Kết quả có thể được trả về từ bất kỳ cấp nào, tùy thuộc vào độ cụ thể của truy vấn
+- Có thể cung cấp ngữ cảnh phân cấp (hiển thị quan hệ nút cha/nút con)
+- Hỗ trợ cả truy xuất chi tiết chính xác lẫn đối sánh khái niệm toàn cục
 
-## Advantages
+## Ưu điểm
 
-### 1. Multi-granularity Matching
-- Specific queries match detailed leaf nodes
-- Conceptual queries match abstract summary nodes
-- No need to choose a single chunk size
+### 1. Đối sánh đa mức độ chi tiết
+- Các truy vấn cụ thể khớp với những nút lá chi tiết
+- Các truy vấn khái quát khớp với những nút tóm tắt trừu tượng
+- Không cần chọn một kích thước đoạn duy nhất
 
-### 2. Context Preservation
-- Parent nodes retain semantic information about their children
-- Enables retrieval with contextual understanding
-- Reduces fragmentation of related information
+### 2. Bảo toàn ngữ cảnh
+- Các nút cha giữ lại thông tin ngữ nghĩa từ các nút con
+- Cho phép truy xuất với khả năng hiểu ngữ cảnh
+- Giảm sự phân mảnh của các thông tin liên quan
 
-### 3. Efficient Global Reasoning
-- Abstract nodes allow quick assessment of document relevance
-- Enables filtering before expensive detailed comparisons
-- Supports hierarchical navigation of knowledge
+### 3. Suy luận toàn cục hiệu quả
+- Các nút trừu tượng cho phép đánh giá nhanh mức độ liên quan của tài liệu
+- Cho phép lọc trước khi thực hiện các phép so sánh chi tiết tốn kém
+- Hỗ trợ điều hướng tri thức theo cấu trúc phân cấp
 
-### 4. Robustness to Noise
-- Summarization can filter out irrelevant details
-- Abstract levels are more resistant to minor variations
-- Provides denoised views of complex documents
+### 4. Khả năng chống nhiễu
+- Việc tóm tắt có thể lọc bỏ các chi tiết không liên quan
+- Các cấp độ trừu tượng ít bị ảnh hưởng hơn bởi những biến thể nhỏ
+- Cung cấp góc nhìn đã được khử nhiễu về các tài liệu phức tạp
 
-## Implementation Details
+## Chi tiết triển khai
 
-### Clustering Strategy
-- Uses cosine similarity between node embeddings
-- Greedy assignment to nearest cluster center
-- Limited by branching factor to control tree width
+### Chiến lược phân cụm
+- Sử dụng độ tương đồng cosine giữa các embedding của nút
+- Gán tham lam vào tâm cụm gần nhất
+- Bị giới hạn bởi hệ số phân nhánh để kiểm soát độ rộng của cây
 
-### Summarization
-- Extractive summarization (selecting key sentences)
-- In production: Replace with abstractive summarization models (PEGASUS, BART, T5, etc.)
-- Length-controlled to maintain appropriate abstraction levels
+### Tóm tắt
+- Tóm tắt trích xuất (chọn các câu then chốt)
+- Trong môi trường thực tế: Thay thế bằng các mô hình tóm tắt trừu tượng (PEGASUS, BART, T5, v.v.)
+- Kiểm soát độ dài để duy trì mức độ trừu tượng phù hợp
 
-### Embedding Generation
-- Simple embedding function for demonstration
-- In production: Use sentence transformers (SBERT, etc.) or contextual embeddings
-- Consistent embedding space across all levels enables fair comparison
+### Tạo embedding
+- Sử dụng hàm embedding đơn giản để minh họa
+- Trong môi trường thực tế: Sử dụng sentence transformer (SBERT, v.v.) hoặc embedding theo ngữ cảnh
+- Không gian embedding nhất quán ở mọi cấp cho phép so sánh công bằng
 
-### Search Flexibility
-- Level-specific search: Target specific abstraction levels
-- Multi-level search: Search across all levels simultaneously
-- Contextual results: Include parent/child relationships in output
-- Score normalization: Enables fair comparison across levels
+### Tính linh hoạt khi tìm kiếm
+- Tìm kiếm theo cấp: Nhắm đến các cấp độ trừu tượng cụ thể
+- Tìm kiếm đa cấp: Tìm kiếm đồng thời trên mọi cấp
+- Kết quả theo ngữ cảnh: Bao gồm quan hệ nút cha/nút con trong đầu ra
+- Chuẩn hóa điểm số: Cho phép so sánh công bằng giữa các cấp
 
-## When to Use RAPTOR
+## Khi nào nên sử dụng RAPTOR
 
-RAPTOR is particularly beneficial when:
-- Document collection contains heterogeneous document lengths
-- User queries vary from specific factual to broad conceptual
-- Knowledge synthesis across document sections is required
-- Contextual understanding is crucial for accurate retrieval
-- The corpus benefits from multi-resolution analysis (legal, medical, technical documentation)
+RAPTOR đặc biệt hữu ích khi:
+- Tập hợp tài liệu chứa các tài liệu có độ dài không đồng nhất
+- Truy vấn của người dùng đa dạng, từ câu hỏi thực tế cụ thể đến câu hỏi khái niệm rộng
+- Cần tổng hợp tri thức xuyên suốt các phần của tài liệu
+- Hiểu ngữ cảnh là yếu tố quan trọng để truy xuất chính xác
+- Kho dữ liệu phù hợp với việc phân tích đa độ phân giải (tài liệu pháp lý, y tế, kỹ thuật)
 
-## Comparison to Alternatives
+## So sánh với các phương pháp thay thế
 
-| Technique | Granularity | Context | Best For |
-|-----------|-------------|---------|----------|
-| Flat Chunking | Fixed | Limited | Simple retrieval, uniform documents |
-| Multi-Representation | Multiple views | Per view | Different aspects of same content |
-| **RAPTOR** | **Hierarchical tree** | **Parent-child paths** | **Multi-granularity queries, context preservation** |
-| Hierarchical Clustering | Flat clusters | Cluster-only | Topic modeling without retrieval focus |
+| Kỹ thuật | Mức độ chi tiết | Ngữ cảnh | Phù hợp nhất cho |
+|-----------|-----------------|----------|------------------|
+| Chia đoạn phẳng | Cố định | Hạn chế | Truy xuất đơn giản, tài liệu đồng nhất |
+| Đa biểu diễn | Nhiều góc nhìn | Theo từng góc nhìn | Các khía cạnh khác nhau của cùng một nội dung |
+| **RAPTOR** | **Cây phân cấp** | **Đường dẫn cha–con** | **Truy vấn đa mức độ chi tiết, bảo toàn ngữ cảnh** |
+| Phân cụm phân cấp | Các cụm phẳng | Chỉ ở mức cụm | Mô hình hóa chủ đề không tập trung vào truy xuất |
 
-## Implementation Notes
+## Ghi chú triển khai
 
-This implementation provides:
-- Modular design with separable components (summarizer, embedder, clustering)
-- Clear tree structure with node relationships
-- Flexible search with contextual output
-- Statistics tracking for monitoring tree characteristics
-- Example usage demonstrating end-to-end functionality
+Phần triển khai này cung cấp:
+- Thiết kế mô-đun với các thành phần có thể tách rời (bộ tóm tắt, bộ tạo embedding, bộ phân cụm)
+- Cấu trúc cây rõ ràng với các quan hệ giữa các nút
+- Tìm kiếm linh hoạt với đầu ra theo ngữ cảnh
+- Theo dõi thống kê để giám sát đặc điểm của cây
+- Ví dụ sử dụng minh họa chức năng đầu-cuối
 
-In production systems, the SimpleSummarizer and SimpleColBERTEmbedder would be replaced with pretrained models from Hugging Face or similar sources, significantly improving summarization quality and embedding effectiveness.
+Trong các hệ thống thực tế, `SimpleSummarizer` và `SimpleColBERTEmbedder` sẽ được thay thế bằng các mô hình đã được huấn luyện trước từ Hugging Face hoặc các nguồn tương tự, qua đó cải thiện đáng kể chất lượng tóm tắt và hiệu quả của embedding.
