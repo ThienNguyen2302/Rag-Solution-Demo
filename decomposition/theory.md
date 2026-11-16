@@ -6,7 +6,7 @@ Phân giải truy vấn (Query Decomposition) là kỹ thuật trong hệ thốn
 
 Trong RAG truyền thống, một câu hỏi phức tạp thường dẫn đến truy xuất không hiệu quả vì:
 - Câu hỏi có thể chứa nhiều khía cạnh cần tìm kiếm thông tin khác nhau
-- Vector embedding của câu hỏi phức tạp可能 không tốt représenter từng khía cạnh cụ thể
+- Vector embedding của câu hỏi phức tạp có thể không đại diện tốt cho từng khía cạnh cụ thể
 - Một passage có thể chỉ trả lời được một phần của câu hỏi
 
 Phân giải truy vấn giải quyết vấn đề này bằng cách:
@@ -15,7 +15,7 @@ Phân giải truy vấn giải quyết vấn đề này bằng cách:
 3. Thực hiện truy xuất riêng cho mỗi câu hỏi con
 4. Tổng hợp kết quả từ tất cả các truy xuất để tạo câu trả lời cuối cùng
 
-![Sơ đồ](images/query_decomposition.png)
+![Sơ đồ](images/answer_invidual.jpg)
 
 ## Cách hoạt động trong code
 
@@ -82,3 +82,5 @@ File `decomposition.py` thể hiện đúng bản chất của kỹ thuật: s�
 ## Tóm tắt
 
 Phân giải truy vấn trong RAG là kỹ thuật dùng LLM để biến một câu hỏi phức tạp thành nhiều câu hỏi con đơn giản, độc lập, rồi thực hiện truy xuất riêng cho từng câu hỏi con trước khi tổng hợp kết quả. Cách làm này giúp hệ thống tập trung vào từng khía cạnh cụ thể của câu hỏi gốc, cải thiện chất lượng truy xuất và uiteindelijk dẫn đến câu trả lời tốt hơn, đặc biệt hiệu quả với các câu hỏi có nhiều khía cạnh hoặc cần synthesis thông tin từ nhiều nguồn khác nhau.
+
+![Sơ đồ](images/answer_recursively.jpg)
