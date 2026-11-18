@@ -8,6 +8,8 @@ Thay vì chỉ tìm kiếm một lần với một câu hỏi, hệ thống nhì
 
 Trong demo này, LLM tạo ra các truy vấn mở rộng cho cuốn sách _The Last Lecture_. Mỗi truy vấn được dùng để tìm các chunk trong vector store. Các chunk sau đó được hợp nhất bằng Reciprocal Rank Fusion (RRF) trước khi gửi cho LLM tạo câu trả lời cuối cùng.
 
+![Sơ đồ](./images/flow.jpg)
+
 ## Vì sao cần RAG Fusion?
 
 Một câu hỏi ngắn có thể không chứa đủ từ khóa hoặc ngữ cảnh để tìm đúng chunk. Cùng một ý tưởng có thể được diễn đạt theo nhiều cách khác nhau trong tài liệu.
