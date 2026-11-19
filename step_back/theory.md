@@ -6,6 +6,8 @@ Step-back prompting là kỹ thuật yêu cầu LLM tạm lùi lại khỏi mộ
 
 Thay vì tìm kiếm trực tiếp bằng câu hỏi quá chi tiết, hệ thống dùng câu hỏi tổng quát này để truy xuất kiến thức nền. Sau đó, LLM sử dụng context đã truy xuất để trả lời câu hỏi ban đầu.
 
+![Sơ đồ](./images/step_back.jpg)
+
 Ví dụ:
 
 ```text
