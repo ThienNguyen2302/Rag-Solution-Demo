@@ -13,6 +13,8 @@ HyDE giải quyết bài toán này bằng cách:
 3. Tìm kiếm các đoạn văn thực trong corpus có độ tương đồng cao nhất với nhúng của tài liệu giả định
 4. Sử dụng các đoạn văn thực được truy xuất để tạo ra câu trả lời cuối cùng
 
+![Sơ đồ RAG Fusion](./images/flow.jpg)
+
 ## Cách hoạt động trong code
 
 Trong file `hyde_technique.py`, luồng xử lý đi theo các bước sau:
